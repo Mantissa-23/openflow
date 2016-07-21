@@ -12,7 +12,7 @@ $fs = 0.1;
 //Set to 1 to see exploded model w/ all parts. Set to a higher value for more separation.
 exploded = 0;
 
-cutaway = false;
+cutaway = true;
 
 //Measurements for Outer Diameter and Wall Width are from standard North American Schedule charts.
 //Body Measurements
@@ -193,6 +193,10 @@ module holes() {
 			hole(lpww*4, holediameter);
 
 	}
+	translate([lpww*4, 0, lpod/2 + lpww])
+		hole(lpww*5, holediameter);
+	translate([-hpww*4, 0, (hpod + lpod)/4 + lpww])
+		hole(lpww*10, holediameter);
 }
 
 /*-------------------
@@ -210,7 +214,7 @@ module cylinder_star(holewidth, diameter, count) {
 	}
 }
 
-module three_spool(length, outerdiameter, wallwidth, center=true) {
+module spool(length, outerdiameter, wallwidth, chambers, center=true) {
 	l = length - wallwidth;
 	r = 0.1;
 	c = center ? -length/2 : 0;
@@ -226,8 +230,8 @@ module three_spool(length, outerdiameter, wallwidth, center=true) {
 	translate([0,0,c]) {
 		if(exploded==0) {
 			union() {
-				for(i = [0:3]) {
-					translate([0,0,i*l/3 + wallwidth/2])
+				for(i = [0:chambers]) {
+					translate([0,0,i*l/chambers + wallwidth/2])
 						piston(outerdiameter, wallwidth);
 				}
 				rods();
@@ -237,8 +241,8 @@ module three_spool(length, outerdiameter, wallwidth, center=true) {
 			translate([0,0,exploded*(length + 1)]) {
 				translate([0,0,exploded*(length + 1)]) {
 					difference() {
-						for(i = [0:3]) {
-							translate([0,0,i*l/6 + wallwidth/2])
+						for(i = [0:chambers]) {
+							translate([0,0,i*l/(chambers*2) + wallwidth/2])
 								piston(outerdiameter, wallwidth);
 						}
 						rods();
@@ -273,7 +277,7 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, center
 	//is an optional variable, in the event that the adapters are NOT flush.
 	translate([0,0,c]) {
 		translate([0,0,length*(1/14)])
-			three_spool(length - length*(1/7), innerdiameter, innerww, center=true);
+			spool(length - length*(1/7), innerdiameter, innerww, 3, center=true);
 		difference() {
 			difference() {
 				union() {
