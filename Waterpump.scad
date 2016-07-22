@@ -254,8 +254,17 @@ module spool(length, outerdiameter, wallwidth, chambers, center=true) {
 	}
 }
 
+//Legacy five_valve; not used in current version.
 module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, center=true, endpadding=0) {
-	module valves() {
+
+	module endports() {
+		translate([0,0,length/2])
+			hole(h = outerww*4, d=holediameter, center=true);
+		translate([0,0,-length/2])
+			hole(h = outerww*4, d=holediameter, center=true);
+	}
+
+	module midports() {
 		rotate([90,0,0]) {
 			for(i = [-2:2]) {
 				//Alternates holes between one side and the other.
@@ -264,10 +273,6 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, center
 					hole(h = outerww*3, d=holediameter, center=true);
 			}
 		}
-		translate([0,0,length/2])
-			hole(h = outerww*4, d=holediameter, center=true);
-		translate([0,0,-length/2])
-			hole(h = outerww*4, d=holediameter, center=true);
 	}
 
 	c = center ? 0 : length/2 + outerww;
@@ -288,7 +293,62 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, center
 						mirror([0,0,1])
 							cap(outerdiameter, outerww);
 				}
-				valves();
+				{
+				endports();
+				midports();
+				}
+			}
+			if(cutaway) {
+				translate([-outerdiameter/2, 0, 0])
+					cube([outerdiameter, outerdiameter*1.4, length*1.2 + endpadding*2], center=true);
+			}
+		}
+	}
+}
+
+//Ten valve is currently just a copy of five_valve; not appropriate for assembly.
+module ten_valve(length, outerdiameter, outerww, innerdiameter, innerww, center=true, endpadding=0) {
+
+	module endports() {
+		translate([0,0,length/2])
+			hole(h = outerww*4, d=holediameter, center=true);
+		translate([0,0,-length/2])
+			hole(h = outerww*4, d=holediameter, center=true);
+	}
+
+	module midports() {
+		rotate([90,0,0]) {
+			for(i = [-2:2]) {
+				//Alternates holes between one side and the other.
+				j = i % 2 == 0 ? -1 : 1;
+				translate([0, i*length/7, j*(outerdiameter/2 - outerww)])
+					hole(h = outerww*3, d=holediameter, center=true);
+			}
+		}
+	}
+
+	c = center ? 0 : length/2 + outerww;
+	//(length*(1/7) and (1/14) reflects the length of the 3-chambered spool; at least this amount of
+	//space is needed for the valve to fully actuate, so long as the input
+	//and output adapters are flush with the inside of the valve. Endapdding
+	//is an optional variable, in the event that the adapters are NOT flush.
+	translate([0,0,c]) {
+		translate([0,0,length*(1/14)])
+			spool(length - length*(1/7), innerdiameter, innerww, 3, center=true);
+		difference() {
+			difference() {
+				union() {
+					pipe(length + endpadding*2, outerdiameter, outerww, center=true);
+					translate([0,0,length/2])
+						cap(outerdiameter, outerww);
+					translate([0,0,-length/2])
+						mirror([0,0,1])
+							cap(outerdiameter, outerww);
+				}
+				{
+				endports();
+				midports();
+				}
 			}
 			if(cutaway) {
 				translate([-outerdiameter/2, 0, 0])
