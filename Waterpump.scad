@@ -82,28 +82,23 @@ module down(d) {
 /*----------------------
 ----General Plumbing---
 --------------------*/
-
-module pipe(height, outerdiameter, wallthickness, center=false) {
+module tube(h, od, id, center=false) {
 	difference() {
-		ro = outerdiameter/2;
-		ri = outerdiameter/2 - wallthickness;
-		cylinder(h = height, r1 = ro, r2 = ro, center=center);
-		cylinder(h = height, r1 = ri, r2 = ri, center=center);
+		ro = od/2;
+		ri = id/2;
+		cylinder(h = h, r1 = ro, r2 = ro, center=center);
+		cylinder(h = h, r1 = ri, r2 = ri, center=center);
 	}
 }
 
-module tube(height, outerdiameter, innerdiameter, center=false) {
-	difference() {
-		ro = outerdiameter/2;
-		ri = innerdiameter/2;
-		cylinder(h = height, r1 = ro, r2 = ro, center=center);
-		cylinder(h = height, r1 = ri, r2 = ri, center=center);
-	}
+module pipe(h, od, ww, center=false) {
+	tube(h = h, od = od, id = od - ww*2, center=center);
 }
 
-module cap(outerdiameter, wallthickness) {
-	ro = outerdiameter/2+wallthickness;
-	ri = outerdiameter/2;
+
+module cap(od, ww) {
+	ro = od/2+ww;
+	ri = od/2;
 	translate([0,0,-ri])
 		difference() {
 			linear_extrude(ro)
@@ -114,16 +109,16 @@ module cap(outerdiameter, wallthickness) {
 
 //Add threads?
 module hole(h, d, center=true) {
-	cylinder(h=h, r1=d/2, r2=d/2, center=center);
+	cylinder(h=h, r=d/2, center=center);
 }
 
-module piston(outerdiameter, wallthickness, center=true) {
-	r = outerdiameter/2 - wallthickness;
-	c = center ? 0 : wallthickness/3;
+module piston(od, ww, center=true) {
+	r = od/2 - ww;
+	c = center ? 0 : ww/3;
 	union() {
-		pipe(wallthickness, outerdiameter, wallthickness, center=center);
+		pipe(ww, od, ww, center=center);
 		translate([0,0,c])
-		cylinder(h=wallthickness/3, r1=r, r2=r, center=center);
+		cylinder(h=ww/3, r1=r, r2=r, center=center);
 	}
 }
 
@@ -256,15 +251,15 @@ module cylinder_star(holewidth, diameter, count) {
 	}
 }
 
-module spool(length, outerdiameter, wallwidth, chambers, center=true) {
-	l = length - wallwidth;
+module spool(length, od, ww, chambers, center=true) {
+	l = length - ww;
 	r = 0.1;
 	c = center ? -length/2 : 0;
 
 	module rods() {
 		for(i=[0:2]) {
 			rotate([0,0,i*120])
-				translate([outerdiameter/4, 0, 0])
+				translate([od/4, 0, 0])
 				cylinder(h=length, r1=r, r2=r);
 		}
 	}
@@ -273,8 +268,8 @@ module spool(length, outerdiameter, wallwidth, chambers, center=true) {
 		if(exploded==0) {
 			union() {
 				for(i = [0:chambers]) {
-					translate([0,0,i*l/chambers + wallwidth/2])
-						piston(outerdiameter, wallwidth);
+					translate([0,0,i*l/chambers + ww/2])
+						piston(od, ww);
 				}
 				rods();
 			}
@@ -284,8 +279,8 @@ module spool(length, outerdiameter, wallwidth, chambers, center=true) {
 				translate([0,0,exploded*(length + 1)]) {
 					difference() {
 						for(i = [0:chambers]) {
-							translate([0,0,i*l/(chambers*2) + wallwidth/2])
-								piston(outerdiameter, wallwidth);
+							translate([0,0,i*l/(chambers*2) + ww/2])
+								piston(od, ww);
 						}
 						rods();
 					}
@@ -297,7 +292,7 @@ module spool(length, outerdiameter, wallwidth, chambers, center=true) {
 }
 
 //Legacy five_valve; not used in current version.
-module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, top=true, center=true, endpadding=0) {
+module five_valve(length, od, outerww, innerdiameter, innerww, top=true, center=true, endpadding=0) {
 
 	module endports() {
 		translate([0,0,length/2])
@@ -311,7 +306,7 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, top=tr
 			for(i = [-2:2]) {
 				//Alternates holes between one side and the other.
 				j = i % 2 == 0 ? -1 : 1;
-				translate([0, i*length/7, j*(outerdiameter/2 - outerww)])
+				translate([0, i*length/7, j*(od/2 - outerww)])
 					hole(h = outerww*3, d=holediameter, center=true);
 			}
 		}
@@ -331,10 +326,10 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, top=tr
 		difference() {
 			difference() {
 				union() {
-					pipe(length + endpadding*2, outerdiameter, outerww, center=true);
+					pipe(length + endpadding*2, od, outerww, center=true);
 					translate([0,0,tn*length/2])
 						mirror([0,0,t])
-							cap(outerdiameter, outerww);
+							cap(od, outerww);
 				}
 				{
 				endports();
@@ -342,8 +337,8 @@ module five_valve(length, outerdiameter, outerww, innerdiameter, innerww, top=tr
 				}
 			}
 			if(cutaway) {
-				translate([-outerdiameter/2, 0, 0])
-					cube([outerdiameter, outerdiameter*1.4, length*1.2 + endpadding*2], center=true);
+				translate([-od/2, 0, 0])
+					cube([od, od*1.4, length*1.2 + endpadding*2], center=true);
 			}
 		}
 	}
