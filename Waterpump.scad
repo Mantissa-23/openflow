@@ -12,7 +12,7 @@ $fs = 0.1;
 //Set to 1 to see exploded model w/ all parts. Set to a higher value for more separation.
 exploded = 0;
 
-cutaway = true;
+cutaway = false;
 
 //Measurements for Outer Diameter and Wall Width are from standard North American Schedule charts.
 //Body Measurements
@@ -44,6 +44,40 @@ spoolinnerww = 0.133;
 spoolouternom = 1.25;
 spoolouterod = 1.660;
 spoolouterww = 0.140;
+
+/*------------
+----Utils----
+----------*/
+
+module forward(d) {
+	translate([0, d, 0])
+		children();
+}
+
+module back(d) {
+	translate([0, -d, 0])
+		children();
+}
+
+module right(d) {
+	translate([d, 0, 0])
+		children();
+}
+
+module left(d) {
+	translate([-d, 0, 0])
+		children();
+}
+
+module up(d) {
+	translate([0, 0, d])
+		children();
+}
+
+module down(d) {
+	translate([0, 0, -d])
+		children();
+}
 
 /*----------------------
 ----General Plumbing---
@@ -195,8 +229,16 @@ module holes() {
 	}
 	translate([lpww*4, 0, lpod/2 + lpww])
 		hole(lpww*5, holediameter);
-	translate([-hpww*4, 0, (hpod + lpod)/4 + lpww])
+	
+	translate([-hpww*4, 0, (hpod + lpod)/4 + lpww]) {
 		hole(lpww*10, holediameter);
+		up(lpww)
+			hull() {
+				hole(lpww*3, holediameter*2);
+				left(2)
+					hole(lpww*3, holediameter*2);
+			}
+	}
 }
 
 /*-------------------
@@ -382,7 +424,7 @@ module assembly() {
 				cube([cylinderlength*5, offset*2, offset*2], center=true);
 		}
 	}
-	rotate([0,90,0])
+	*rotate([0,90,0])
 		mainpiston();
 
 	//Spool Valves
@@ -390,7 +432,7 @@ module assembly() {
 		five_valve(6, spoolouterod, spoolouterww, spoolinnerod, spoolinnerww, center=false);
 	}
 
-	translate([0, 6, 0]) {
+	*translate([0, 6, 0]) {
 		rotate([0,90,0]) {
 			five_valve_assembly();
 			translate([0,0,-(6 + spoolouterww*2)])
