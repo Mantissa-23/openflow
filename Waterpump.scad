@@ -99,7 +99,7 @@ module pipe(h, od, ww, center=false) {
 module cap(od, ww) {
 	ro = od/2+ww;
 	ri = od/2;
-	translate([0,0,-ri])
+	down(ri)
 		difference() {
 			linear_extrude(ro)
 				ngon(6, ro*1.1);
@@ -117,8 +117,8 @@ module piston(od, ww, center=true) {
 	c = center ? 0 : ww/3;
 	union() {
 		pipe(ww, od, ww, center=center);
-		translate([0,0,c])
-		cylinder(h=ww/3, r1=r, r2=r, center=center);
+		up(c)
+			cylinder(h=ww/3, r1=r, r2=r, center=center);
 	}
 }
 
@@ -135,10 +135,10 @@ module reducer(length, lad, laww, sad, saww, separatorwidth) {
 			//Large initial cylinder
 			cylinder(h = length, r1 = od/2, r2 = od/2, center=true);
 			//2" adapter
-			translate([0,0,separatorwidth/2]) {
+			up(separatorwidth/2) {
 				cylinder(h = length, r1 = lpod/2, r2 = lpod/2);
 			}
-			translate([0,0,-separatorwidth/2]) {
+			down(separatorwidth/2) {
 				//1" adapter
 				mirror([0,0,1]) {
 					cylinder(h = length, r1 = hpod/2, r2=hpod/2);
@@ -153,7 +153,7 @@ module reducer(length, lad, laww, sad, saww, separatorwidth) {
 		//Add spokes
 		for(i = [0:3]) {
 			rotate([0,0,i*90 + 45]) {
-				translate([0,(lpod+sod)/4,-length/4]) {
+				translate([0, (lpod+sod)/4, -length/4]) {
 					cube([separatorwidth/2, (lpod-sod)/2 + 0.1, length/2], center=true);
 				}
 			}
@@ -165,19 +165,19 @@ module body() {
 	bushingspacer = 0.25;
 
 	//Low-Pressure Cylinder
-	translate([0, 0, bushingspacer/2 + exploded*3]) {
+	up(bushingspacer/2 + exploded*3) {
 		pipe(cylinderlength, lpod, lpww);
-		translate([0, 0, cylinderlength + exploded*2])
+		up(cylinderlength + exploded*2)
 			cap(lpod, lpww);
 	}
 
 	//High-Pressure Cylinder
 	mirror([0,0,1]) {
-		translate([0, 0, bushingspacer/2 + exploded*3]) {
+		up(bushingspacer/2 + exploded*3) {
 			pipe(cylinderlength, hpod, hpww);
-			translate([0,0,cylinderlength + exploded*2]) {
+			up(cylinderlength + exploded*2) {
 				cap(hpod, hpww);
-				translate([0,0,exploded*3])
+				up(exploded*3)
 					cap(lpod, lpww);
 			}
 		}
@@ -199,10 +199,10 @@ module mainpiston() {
 	union() {
 		cylinder(h = cylinderlength, r1=r, r2=r, center=true);
 		{
-		translate([0,0,cylinderlength/2])
+		up(cylinderlength/2)
 			mirror([0,0,1])
 				piston(lpod - lpww*2, lpww, center=false);
-		translate([0,0,-cylinderlength/2])
+		down(cylinderlength/2)
 			piston(hpod - hpww*2, hpww, center=false);
 		}
 	}
@@ -213,11 +213,11 @@ module mainpiston() {
 -----------------------*/
 
 module holes() {
-	translate([cylinderlength, 0, 0]) {
+	right(cylinderlength) {
 		rotate([0,90,0])
 			hole(lpww*4, holediameter);
 	}
-	translate([-cylinderlength, 0, 0]) {
+	left(cylinderlength) {
 		rotate([0,90,0])
 			hole(lpww*4, holediameter);
 
@@ -259,27 +259,27 @@ module spool(length, od, ww, chambers, center=true) {
 	module rods() {
 		for(i=[0:2]) {
 			rotate([0,0,i*120])
-				translate([od/4, 0, 0])
+				right(od/4)
 				cylinder(h=length, r1=r, r2=r);
 		}
 	}
 
-	translate([0,0,c]) {
+	up(c) {
 		if(exploded==0) {
 			union() {
 				for(i = [0:chambers]) {
-					translate([0,0,i*l/chambers + ww/2])
+					up(i*l/chambers + ww/2)
 						piston(od, ww);
 				}
 				rods();
 			}
 		}
 		else {
-			translate([0,0,exploded*(length + 1)]) {
-				translate([0,0,exploded*(length + 1)]) {
+			up(exploded*(length + 1)) {
+				up(exploded*(length + 1)) {
 					difference() {
 						for(i = [0:chambers]) {
-							translate([0,0,i*l/(chambers*2) + ww/2])
+							up(i*l/(chambers*2) + ww/2)
 								piston(od, ww);
 						}
 						rods();
@@ -295,9 +295,9 @@ module spool(length, od, ww, chambers, center=true) {
 module five_valve(length, od, outerww, innerdiameter, innerww, top=true, center=true, endpadding=0) {
 
 	module endports() {
-		translate([0,0,length/2])
+		up(length/2)
 			hole(h = outerww*4, d=holediameter, center=true);
-		translate([0,0,-length/2])
+		down(length/2)
 			hole(h = outerww*4, d=holediameter, center=true);
 	}
 
@@ -320,14 +320,14 @@ module five_valve(length, od, outerww, innerdiameter, innerww, top=true, center=
 	//space is needed for the valve to fully actuate, so long as the input
 	//and output adapters are flush with the inside of the valve. Endapdding
 	//is an optional variable, in the event that the adapters are NOT flush.
-	translate([0,0,c]) {
-		translate([0,0,length*(1/14)])
+	up(c) {
+		up(length*(1/14))
 			spool(length - length*(1/7), innerdiameter, innerww, 3, center=true);
 		difference() {
 			difference() {
 				union() {
 					pipe(length + endpadding*2, od, outerww, center=true);
-					translate([0,0,tn*length/2])
+					up(tn*length/2)
 						mirror([0,0,t])
 							cap(od, outerww);
 				}
@@ -337,7 +337,7 @@ module five_valve(length, od, outerww, innerdiameter, innerww, top=true, center=
 				}
 			}
 			if(cutaway) {
-				translate([-od/2, 0, 0])
+				left(od/2)
 					cube([od, od*1.4, length*1.2 + endpadding*2], center=true);
 			}
 		}
@@ -359,7 +359,7 @@ module assembly() {
 		}
 		if(cutaway) {
 			offset = 5;
-			translate([0, offset, 0])
+			forward(offset)
 				cube([cylinderlength*5, offset*2, offset*2], center=true);
 		}
 	}
@@ -371,10 +371,10 @@ module assembly() {
 		five_valve(6, spoolouterod, spoolouterww, spoolinnerod, spoolinnerww, top=top, center=false);
 	}
 
-	translate([0, 6, 0]) {
+	forward(6) {
 		rotate([0,90,0]) {
 			five_valve_assembly();
-			translate([0,0,-(6 + spoolouterww*2)])
+			down(6 + spoolouterww*2)
 				five_valve_assembly(top=false);
 		}
 	}
