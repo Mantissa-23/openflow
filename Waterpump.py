@@ -225,3 +225,5 @@ if __name__ == '__main__':
     file_out = os.path.join(out_dir, 'Waterpump.py.scad')
 
     scad_render_to_file(assembly(), file_out, file_header='$fs = %s;' % RESOLUTION)
+
+# Hopefully merging into master?
