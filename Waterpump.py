@@ -136,27 +136,44 @@ def reducer(length, largeod, largeww, smallod, smallww, separatorwidth):
     return adapters
 
 def body():
-    lowpressurec = up(bushingspacer/2 + exploded*3)(
-        pipe(cylinderlength, lpod, lpww)
-        +
-        up(cylinderlength + exploded*2)(
-            cap(lpod, lpww)
-        )
-    )
 
-    highpressurec = mirror([0,0,1])(
-        up(bushingspacer/2 + exploded*3)(
-            pipe(cylinderlength, hpod, hpww)
+    def lowpressurecylinder():
+        @bom_part("2inx12in PVC", 8.18, link="http://www.homedepot.com/p/2-in-x-10-ft-PVC-Sch-40-Plain-End-Pipe-531137/100161954")
+        def l_cylinder():
+            pipe(cylinderlength, lpod, lpww)
+
+        def l_cap():
+            return up(cylinderlength + exploded*2)(
+                cap(lpod, lpww)
+            )
+
+        return up(bushingspacer/2 + exploded*3)(
+            l_cylinder()
             +
-            up(cylinderlength + exploded*2)(
+            l_cap()
+        )
+
+    def highpressurecylinder():
+
+        def h_cylinder():
+            return pipe(cylinderlength, hpod, hpww)
+            
+        def h_cap():
+            return up(cylinderlength + exploded*2)(
                 cap(hpod, hpww)
                 +
                 up(exploded*3)(
                     cap(lpod,lpww)
                 )
             )
+
+        return mirror([0,0,1])(
+            up(bushingspacer/2 + exploded*3)(
+                h_cylinder()
+                +
+                h_cap()
+            )
         )
-    )
 
     join = reducer(2.64, lpod, lpww, hpod, hpww, bushingspacer)
 
