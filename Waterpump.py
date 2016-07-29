@@ -138,9 +138,9 @@ def reducer(length, largeod, largeww, smallod, smallww, separatorwidth):
 def body():
 
     def lowpressurecylinder():
-        @bom_part("2inx12in PVC", 8.18, link="http://www.homedepot.com/p/2-in-x-10-ft-PVC-Sch-40-Plain-End-Pipe-531137/100161954")
+        @bom_part("2inx12in PVC", 8.18)
         def l_cylinder():
-            pipe(cylinderlength, lpod, lpww)
+            return pipe(cylinderlength, lpod, lpww)
 
         def l_cap():
             return up(cylinderlength + exploded*2)(
@@ -179,7 +179,7 @@ def body():
 
     plug = tube(0.5, hpod - hpww*2, mainpiston_rod_d, center=True)
 
-    return lowpressurec + highpressurec + join + plug
+    return lowpressurecylinder() + highpressurecylinder() + join + plug
 
 """---Mainpiston---"""
 
@@ -202,7 +202,7 @@ def mainpiston():
 
 """---Hole-Drilling---"""
 
-def holes():
+def fittings():
     return (
         # low-pressure end fitting
         up(cylinderlength)(
@@ -215,18 +215,18 @@ def holes():
         )
         +
         # low pressure midpoint fitting
-        translate([lpod/2 + lpww, 0, lpww*4])(
+        translate([-lpod/2 + lpww, 0, lpww*4])(
             rotate([0,90,0])(
                 fitting(lpww*5, fittingdiameter)
             )
         )
         +
         # high pressure midpoint fitting
-        translate([hpod/2 + hpww*0.5, 0, -hpww*4])(
+        translate([-hpod/2 + hpww*0.5, 0, -hpww*4])(
             rotate([0,90,0])(
                 fitting(lpww*4, fittingdiameter)
                 +
-                up(lpod/4)(
+                down(lpod/4)(
                     hull()(
                         fitting(lpww*4, fittingdiameter*2),
                         right(2)(
@@ -392,9 +392,9 @@ def assembly():
         return (
             rotate([0, 90, 0])(
                 body()
+                -
+                fittings()
             )
-            -
-            holes()
             -
             _cutaway(cutaway)
         )
