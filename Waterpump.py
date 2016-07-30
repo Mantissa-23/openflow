@@ -95,6 +95,7 @@ def piston(od, ww, center=True):
     )
 
     return p
+
 """---Mainbody---"""
 
 # Refactor this shit
@@ -136,12 +137,12 @@ def reducer(length, largeod, largeww, smallod, smallww, separatorwidth):
     return adapters
 
 def body():
-
     def lowpressurecylinder():
-        @bom_part("2inx12in PVC", 8.18)
+        @bom_part("2inx12in PVC Pipe", 8.18)
         def l_cylinder():
             return pipe(cylinderlength, lpod, lpww)
 
+        @bom_part("2in PVC Cap", 1.22)
         def l_cap():
             return up(cylinderlength + exploded*2)(
                 cap(lpod, lpww)
