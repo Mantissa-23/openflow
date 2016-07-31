@@ -10,6 +10,8 @@ use(lib+"testing.scad")
 
 RESOLUTION = 0.1
 
+set_bom_headers("link", "use", "leftover")
+
 #Set to 1 to see exploded model w/ all parts. Set to a higher value for more separation.
 exploded = 0
 
@@ -137,50 +139,53 @@ def reducer(length, largeod, largeww, smallod, smallww, separatorwidth):
     return adapters
 
 def body():
+
+    @bom_part("2in PVC Cap", 1.22, link="http://www.homedepot.com/p/2-in-x-10-ft-PVC-Sch-40-Plain-End-Pipe-531137/100161954", use="Removable cover for LPC", leftover=0)
+    def cap_2in():
+        return cap(lpod, lpww)
+
+    @bom_part("2inx10' PVC Pipe", 8.18, link="http://www.homedepot.com/p/2-in-x-10-ft-PVC-Sch-40-Plain-End-Pipe-531137/100161954", use="LPC, Low-Pressure Cylinder", leftover="9'")
+    def pipe_2inx1ft():
+        return pipe(cylinderlength, lpod, lpww)
+
     def lowpressurecylinder():
-        @bom_part("2inx12in PVC Pipe", 8.18)
-        def l_cylinder():
-            return pipe(cylinderlength, lpod, lpww)
-
-        @bom_part("2in PVC Cap", 1.22)
-        def l_cap():
-            return up(cylinderlength + exploded*2)(
-                cap(lpod, lpww)
-            )
-
         return up(bushingspacer/2 + exploded*3)(
-            l_cylinder()
+            pipe_2inx1ft()
             +
-            l_cap()
+            up(cylinderlength + exploded*2)(
+                cap_2in()
+            )
         )
+
+    @bom_part("1in PVC Cap", 1.32, link="http://www.homedepot.com/p/Charlotte-Pipe-1-in-PVC-Sch-40-FPT-Cap-PVC021171200HD/203811724", use="Removable cover for HPC", leftover=0)
+    def cap_1in():
+        return cap(hpod, hpww)
+
+    @bom_part("1inx2ft PVC Sch. 40 Pipe", 1.98, link="http://www.homedepot.com/p/VPC-1-in-x-2-ft-PVC-Sch-40-Pipe-2201/202300506", use="HPC, High-Pressure Cylinder; SV10 body")
+    def pipe_1inx2ft():
+        return pipe(cylinderlength, hpod, hpww)
 
     def highpressurecylinder():
 
-        def h_cylinder():
-            return pipe(cylinderlength, hpod, hpww)
-            
-        def h_cap():
-            return up(cylinderlength + exploded*2)(
-                cap(hpod, hpww)
-                +
-                up(exploded*3)(
-                    cap(lpod,lpww)
-                )
-            )
-
         return mirror([0,0,1])(
             up(bushingspacer/2 + exploded*3)(
-                h_cylinder()
+                pipe_1inx2ft()
                 +
-                h_cap()
+                up(cylinderlength + exploded*2)(
+                    cap_1in()
+                )
             )
         )
 
-    join = reducer(2.64, lpod, lpww, hpod, hpww, bushingspacer)
+    @bom_part("Lasco 2x1 MPTxFPT Reducer Bushing", 3.09, link="https://www.amazon.com/Lasco-439-249-Threaded-Reducer-Bushing%252c/dp/B004UHC0NY/ref=sr_1_1?ie=UTF8&qid=1469132094&sr=8-1&keywords=PVC+FPT+reducer+bushing", use="Connects LPC to HPC", leftover=0)
+    def join():
+        return reducer(2.64, lpod, lpww, hpod, hpww, bushingspacer)
 
-    plug = tube(0.5, hpod - hpww*2, mainpiston_rod_d, center=True)
+    @bom_part("FIND PART")
+    def plug():
+        return tube(0.5, hpod - hpww*2, mainpiston_rod_d, center=True)
 
-    return lowpressurecylinder() + highpressurecylinder() + join + plug
+    return lowpressurecylinder() + highpressurecylinder() + join() + plug()
 
 """---Mainpiston---"""
 
