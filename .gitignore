@@ -1,3 +1,5 @@
 *.swp
 .~lock.*
-*.py.scad
+*.scad
+*.pyc
+__pycache__

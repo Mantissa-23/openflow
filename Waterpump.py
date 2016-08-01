@@ -3,10 +3,8 @@ import os
 from solid import *
 from solid.utils import *
 
-lib = "C:/Users/Dylan/Documents/OpenSCAD/libraries/"
-
-use(lib+"MCAD/2DShapes.scad")
-use(lib+"testing.scad")
+from utils import *
+from plumbing import *
 
 RESOLUTION = 0.1
 
@@ -51,92 +49,9 @@ spoolouternom = 1.25
 spoolouterod = 1.660
 spoolouterww = 0.140
 
-"""---Utils---"""
-### There is no "empty" OpenSCAD object, but to write the equivalent of
-### OpenSCAD for loops in Python, you need one. The SolidPython examples
-### assign an initial variable to a union() and add() to it. This alias
-### is simply for clarity's sake.
-def empty():
-    return union()
 
-"""---General Plumbing---"""
-
-def tube(h, od, id, center=False):
-    return cylinder(h = h, r = od/2, center = center) - cylinder(h = h, r = id/2, center = center)
-
-def pipe(h, od, ww, center=False):
-    return tube(h = h, od = od, id = od-ww*2, center = center)
-
-def cap(od, ww):
-    ro = od/2 + ww
-    ri = od/2
-    cap = up(-ri)(
-        linear_extrude(ro)(
-            ngon(6, ro*1.1)
-        )
-        -
-        cylinder(h = ri, r = ri)
-    )
-    return cap
-
-# Add threads at some point?
-def fitting(h, d, center=True):
-    return cylinder(h=h, r=d/2, center=center)
-
-def piston(od, ww, center=True):
-    r = od/2 - ww;
-    c = 0
-
-    if not center:
-        c = ww/3
-
-    p = (
-        pipe(ww, od, ww, center=center)
-        +
-        up(c)(cylinder(h=ww/3, r=r, center=center))
-    )
-
-    return p
 
 """---Mainbody---"""
-
-# Refactor this shit
-def reducer(length, largeod, largeww, smallod, smallww, separatorwidth):
-    od = largeod + largeww*2
-    sod = smallod + smallww*2
-    
-    large = cylinder(h = length, r = od/2, center=True)
-
-    twoin = up(separatorwidth/2)(
-        cylinder(h = length, r = largeod/2)
-    )
-
-    onein = down(separatorwidth/2)(
-        mirror([0,0,1])(
-            cylinder(h = length, r = smallod/2)
-        )
-        +
-        cylinder(h = length, r = (smallod - smallww*2)/2, center=True)
-        +
-        mirror([0,0,1])(
-            pipe(length, largeod, (largeod-sod)/2)
-        )
-    )
-
-    adapters = large - (
-        twoin
-        +
-        onein
-    )
-
-    for i in range(0,4):
-        adapters = adapters + rotate([0, 0, i*90 + 45])(
-            translate([0, (largeod+sod)/4, -length/4])(
-                cube([separatorwidth/2, (largeod - sod)/2 + 0.1, length/2], center=True)
-            )
-        )
-
-    return adapters
 
 def body():
 
@@ -192,17 +107,29 @@ def body():
 def mainpiston():
     r = mainpiston_rod_d/2
 
+    @bom_part("FIND PART")
+    def rod_1_25in():
+        return cylinder(h = cylinderlength, r=r, center=True)
+
+    @bom_part("FIND PART")
+    def piston_2in():
+        return piston(lpod - lpww*2, lpww, center=False)
+
+    @bom_part("FIND PART")
+    def piston_1in():
+        return piston(hpod - hpww*2, hpww, center=False)
+
     return (
-        cylinder(h = cylinderlength, r=r, center=True)
+        rod_1_25in()
         +
         up(cylinderlength/2)(
             mirror([0,0,1])(
-                piston(lpod - lpww*2, lpww, center=False)
+                piston_2in()
             )
         )
         +
         down(cylinderlength/2)(
-            piston(hpod - hpww*2, hpww, center=False)
+            piston_1in()
         )
     )
 
@@ -259,6 +186,7 @@ def cylinder_star(holewidth, diameter, count):
 
     return out 
 
+# Refactor the spool so it's more accurate to what we're actually going to do.
 def spool(length, od, ww, chambers, center=True):
     l = length - ww
     r = 0.1
@@ -433,4 +361,6 @@ if __name__ == '__main__':
 
     scad_render_to_file(assembly(), file_out, file_header='$fs = %s;' % RESOLUTION)
 
-# Hopefully merging into master?
+    bom = bill_of_materials(csv=True)
+
+    print(bom)
