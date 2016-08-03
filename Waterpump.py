@@ -50,7 +50,6 @@ spoolouterod = 1.660
 spoolouterww = 0.140
 
 
-
 """---Mainbody---"""
 
 def body():
@@ -59,6 +58,8 @@ def body():
     def cap_2in():
         return cap(lpod, lpww)
 
+    # Add actual geometry for this instead of just throwing it all into one big placeholder part
+    @bom_part("2in PVC SxFPT Adapter", 1.53, link="http://www.homedepot.com/p/Charlotte-Pipe-2-in-PVC-Sch-40-Female-S-x-FPT-Adapter-PVC021011600HD/203811416", use="Connects LPC to Reducer Bushing", leftover=0)
     @bom_part("2inx10' PVC Pipe", 8.18, link="http://www.homedepot.com/p/2-in-x-10-ft-PVC-Sch-40-Plain-End-Pipe-531137/100161954", use="LPC, Low-Pressure Cylinder", leftover="9'")
     def pipe_2inx1ft():
         return pipe(cylinderlength, lpod, lpww)
@@ -72,10 +73,13 @@ def body():
             )
         )
 
+    @bom_part()
     @bom_part("1in PVC Cap", 1.32, link="http://www.homedepot.com/p/Charlotte-Pipe-1-in-PVC-Sch-40-FPT-Cap-PVC021171200HD/203811724", use="Removable cover for HPC", leftover=0)
     def cap_1in():
         return cap(hpod, hpww)
 
+    # Same here
+    @bom_part("1in")
     @bom_part("1inx2ft PVC Sch. 40 Pipe", 1.98, link="http://www.homedepot.com/p/VPC-1-in-x-2-ft-PVC-Sch-40-Pipe-2201/202300506", use="HPC, High-Pressure Cylinder; SV10 body")
     def pipe_1inx2ft():
         return pipe(cylinderlength, hpod, hpww)
@@ -232,6 +236,14 @@ def spool(length, od, ww, chambers, center=True):
 
 def five_valve(length, od, oww, id, iww, top=True, center=True, endpadding=0):
 
+    @bom_part("1-1/4 in. PVC Sch. 40 FPT Cap", 0.50, link="https://www.amazon.com/Lasco-448-012-Threaded-Cap%252c-LASCO/dp/B0195UH0U8/ref=sr_1_1?ie=UTF8&qid=1469131420&sr=8-1&keywords=1-1%2F4+in.+PVC+cap+FPT", use="Removable covers for SV10", leftover=0)
+    def valve_cap():
+        return cap(od, oww)
+
+    @bom_part("1-1/4in. x 2ft. PVC Sch. 40 Pipe", 3.20, link="http://www.homedepot.com/p/Charlotte-Pipe-1-1-4-in-x-2-ft-PVC-Sch-40-Pipe-PVC-07100-0200/202018045", use="SV10 Body", leftover='12"')
+    def pipe_body():
+        return pipe(length + endpadding*2, od, oww, center=True)
+
     def endports():
         return (
             up(length/2)(
@@ -290,11 +302,11 @@ def five_valve(length, od, oww, id, iww, top=True, center=True, endpadding=0):
     #is an optional variable, in the event that the adapters are NOT flush.
     return up(c)(
         (
-            pipe(length + endpadding*2, od, oww, center=True)
+            pipe_body()
             +
             up(tn*length/2)(
                 mirror([0,0,t])(
-                    cap(od, oww)
+                    valve_cap()
                 )
             )
             -
