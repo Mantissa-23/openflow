@@ -18,9 +18,7 @@ exploded = 0
 #Set to True to see hollow parts cut in half.
 cutaway = True
 
-"""---Assemblies---"""
-
-def assemble(geometry):
+def render(geometry):
     return (
         body.assembly()
         +
