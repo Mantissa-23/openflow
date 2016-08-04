@@ -18,19 +18,19 @@ exploded = 0
 #Set to True to see hollow parts cut in half.
 cutaway = True
 
-def render(geometry):
-    return (
-        body.assembly()
-        +
-        spool.assembly()
-    )
+def render(geometry, name):
 
     out_dir = sys.argv[1] if len(sys.argv) > 1 else os.curdir
-    file_out = os.path.join(out_dir, 'Waterpump.py.scad')
+    file_out = os.path.join(out_dir, name)
 
-    scad_render_to_file(assemble(), file_out, file_header='$fs = %s;' % RESOLUTION)
+    scad_render_to_file(geometry, file_out, file_header='$fs = %s;' % RESOLUTION)
 
     bom = bill_of_materials(csv=True)
 
     print(bom)
 
+if __name__ == "__main__":
+    render(
+        body.assembly() + spool.assembly(),
+        "model_2ft.scad"
+    )

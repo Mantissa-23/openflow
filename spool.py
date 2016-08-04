@@ -1,3 +1,17 @@
+from __future__ import division, print_function;
+from solid import *
+from solid.utils import *
+
+from utils import *
+from plumbing import *
+
+from model_2ft import *
+from renderer import render
+
+exploded = 0
+
+cutaway = True
+
 """---Spool Valves---"""
 
 #Note: Only works for even-numbered counts.
@@ -159,3 +173,5 @@ def assembly():
         )
     )
 
+if __name__ == "__main__":
+    render(assembly())
